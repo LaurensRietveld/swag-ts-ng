@@ -8,6 +8,7 @@
   },
   "scripts": {
     "build": "ts-node ./node_modules/.bin/gulp build",
+    "build-watch": "ts-node ./node_modules/.bin/gulp watch",
     "postinstall": "npm run build"
   },
   "repository": {

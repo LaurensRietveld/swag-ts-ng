@@ -44,11 +44,12 @@ class SwaggerService {
 
         // loop through definitions
         console.log("Creating model interfaces");
+        // console.log(modelDefinitions);process.exit(1)
         var interfaces: ICodeBlock[] = interfaceCreator.create(modelDefinitions, this.options.modelModuleName);
 
         console.log("Creating model classes");
         var classes: ICodeBlock[] = classCreator.create(modelDefinitions, this.options.modelModuleName);
-
+        // console.log(classes)
         // loop through paths and create Signature definitions to pass to the clientCreator creator
         console.log("Creating Function signatures from swagger.paths");
         var modelPrefix: string = this.options.modelModuleName !== this.options.clientModuleName ? this.options.modelModuleName + "." : "";

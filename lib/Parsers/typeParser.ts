@@ -27,7 +27,7 @@ class typeParser {
 
         switch (property.type) {
             case "array":
-                return this.parse(options, property.items, modelPrefix) + "[]";
+                return 'Array<'+this.parse(options, property.items, modelPrefix)+'>';
             case "boolean":
                 return "boolean";
             case "integer":

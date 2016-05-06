@@ -5,4 +5,5 @@
     parameters: IParamDefinition[];
     path: string;
     summary?: string;
+    responses: {[status:string]: any}
 }

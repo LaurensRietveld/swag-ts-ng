@@ -29,15 +29,17 @@ class signatureCreator {
                     } else {
                         signature += "()";
                     }
-
+                    var responseTypes: {[status:string]: string} = {};
                     var responseFound: boolean = false;
                     for (var r in responses) {
+                        var responseType: string = typeParser.parse(options, responses[r], "I");
+                        responseTypes[r] = responseType;
                         if (r == "200") {
-                            var responseType: string = typeParser.parse(options, responses[r], "I");
                             signature += ": ng.IPromise<" + responseType + ">;"
                             responseFound = true;
                         }
                     }
+
 
                     if (!responseFound) {
                         signature += ": ng.IPromise<any>;"
@@ -48,7 +50,8 @@ class signatureCreator {
                         signature: signature,
                         parameters: paramDefs,
                         path: p,
-                        method: method
+                        method: method,
+                        responses: responseTypes
                     };
 
                     if (summary && summary.length > 0) {
@@ -59,7 +62,6 @@ class signatureCreator {
                 }
             }
         }
-
         return signatureDefinitions;
     }
 }

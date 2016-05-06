@@ -48,6 +48,9 @@ class clientRouteCreator {
         paramTypeBlock += '\t\t}\n';
         methodBlock += paramTypeBlock;
       })
+      _.forEach(usd.responses, function(respClass, respStatus) {
+        methodBlock += '\t\texport interface Response_' + respStatus + (respClass? ' extends ' + respClass + ' ' : ' ') + '{}\n'
+      })
       methodBlock += "\t}\n"
       return methodBlock;
     }
@@ -55,7 +58,6 @@ class clientRouteCreator {
         var template: string = "";
         // template += "module " + options.modelModuleName + " {\n";
         template = "[FUNCTIONS]\n";
-
 
         var signatureText = "";
 
@@ -77,82 +79,7 @@ class clientRouteCreator {
           })
           signatureText += "}\n\n"
         })
-        // _.forEach(uniqSignatures, (usd: ISignatureDefinition) => {
-            // signatureText += clientRouteCreator.getMethodBlock(usd)
-
-
-            // get list of signatures with matching methodName
-            // var signatures = _.filter(signatureDefinitions, (sd: ISignatureDefinition) => { return sd.methodName == usd.methodName; });
-
-            // if (signatures.length > 1) {
-            //
-            //     // this means we have to create an overload for this signature
-            //     signatureText += "\n";
-            //
-            //     // get the signature with the most and least parameters, we will use it to create the implementation for this method
-            //     var signatureWithLeastParams = _.min<ISignatureDefinition>(signatures, "parameters.length");
-            //     var signatureWithMostParams = _.max<ISignatureDefinition>(signatures, "parameters.length");
-            //
-            //     // add documentation if any
-            //     signatureText += documentationCreator.create(signatureWithMostParams);
-            //
-            //     // loop through the signatures and create the overloads with no implementation
-            //     _.forEach(signatures, (s: ISignatureDefinition) => {
-            //         signatureText += "\t" + s.signature + "\n";
-            //     });
-            //
-            //     // lets loop through the params of the signature with most parameters
-            //     var signatureImpText = "\t" + signatureWithMostParams.methodName + "(";
-            //     _.forEach(signatureWithMostParams.parameters, (p: IParamDefinition, i: number) => {
-            //         signatureImpText += "arg" + i.toString() + "?: any, ";
-            //     });
-            //     signatureImpText = signatureImpText.substr(0, signatureImpText.length - 2);
-            //     signatureImpText += ") {\n[IMP]\n\t}";
-            //
-            //     var impText = "";
-            //     impText = "\t\tvar path = this.host + \"" + signatureWithLeastParams.path + "\";\n\n";
-            //
-            //     // logic to create overload checks on parameters
-            //     _.forEach(signatureWithMostParams.parameters, (p: IParamDefinition, i: number) => {
-            //         var arg = "arg" + i.toString();
-            //         impText += "\t\tif (" + arg + " && typeof (" + arg + ") === \"" + p.dataType + "\") {\n";
-            //         impText += "\t\t\tpath += \"/{" + arg + "}\";\n"
-            //         impText += "\t\t\tpath = path.replace(\"{" + arg + "}\", " + arg + ".toString());\n"
-            //         impText += "\t\t}\n\n"
-            //     });
-            //
-            //     impText += "\t\treturn this.httpGet(path);";
-
-                // signatureImpText = signatureImpText.replace("[IMP]", impText);
-                // signatureText = signatureText + signatureImpText + "\n";
-            // } else {
-            //     signatureText += "\n";
-            //     signatureText += documentationCreator.create(signatures[0]);
-            //     if (signatures[0].method == "delete") {
-            //         signatureText += deleteCreator.create(signatures[0]);
-            //     }
-            //
-            //     if (signatures[0].method == "get") {
-            //         signatureText += getCreator.create(signatures[0]);
-            //     }
-            //
-            //     if (signatures[0].method == "post") {
-            //         signatureText += postCreator.create(signatures[0]);
-            //     }
-            //
-            //     if (signatures[0].method == "put") {
-            //         signatureText += putCreator.create(signatures[0]);
-            //     }
-            // }
-        // });
         template = template.replace("[FUNCTIONS]", signatureText);
-
-        // if (options.clientModuleName) {
-        //     template = template.replace(/^\t/gm, "\t\t");
-        //     template = "\texport " + template + "\t}\n";
-        // } else {
-        //     template += "}\n\nexport = " + options.clientClassName + "\n";
-        // }
 
         var result: ICodeBlock = {
             codeType: CodeBlockType.ClientClass,

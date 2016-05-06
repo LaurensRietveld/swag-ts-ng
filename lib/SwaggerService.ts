@@ -117,6 +117,7 @@ class SwaggerService {
         });
 
         var fileName = this.options.clientDestination + "/" + this.options.clientClassName + ".ts";
+        this.mkdirSync(this.options.clientDestination)
         fs.writeFileSync(fileName, code);
     }
 

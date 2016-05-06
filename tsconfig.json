@@ -25,6 +25,7 @@
     "files": [
         "lib/Creators/classCreator.ts",
         "lib/Creators/clientCreator.ts",
+        "lib/Creators/clientRouteCreator.ts",
         "lib/Creators/creatorHelper.ts",
         "lib/Creators/deleteCreator.ts",
         "lib/Creators/documentationCreator.ts",

@@ -6,6 +6,7 @@ import signatureCreator = require("./Creators/signatureCreator");
 import interfaceCreator = require("./Creators/interfaceCreator");
 import classCreator     = require("./Creators/classCreator");
 import clientCreator    = require("./Creators/clientCreator");
+import clientRouteCreator = require("./Creators/clientRouteCreator");
 
 function sanitizeString(string: string) {
   return string.trim().split(' ').join('_');
@@ -27,7 +28,10 @@ class SwaggerService {
         if (!this.options.clientClassName) {
             options.clientClassName = sanitizeString(this.options.swaggerObject.info.title) + "Client";
         }
-        if (!this.options.clientModuleName) {
+        if (!this.options.clientRoutesName) {
+            options.clientRoutesName = sanitizeString(this.options.swaggerObject.info.title) + "Routes";
+        }
+        if (this.options.clientModuleName === undefined) {
           options.clientModuleName = options.clientClassName + "Module"
         }
     }
@@ -55,35 +59,47 @@ class SwaggerService {
         console.log("Creating client classes");
         var clientCode: ICodeBlock = clientCreator.create(this.options, signatureDefinitions);
 
+        console.log("Creating client-route interfaces")
+        var clientRouteCode: ICodeBlock = clientRouteCreator.create(this.options, signatureDefinitions);
+
         // done, now lets go ahead and create the code files
         var blocks: ICodeBlock[] = interfaces;
         if (this.options.classDestination) {
             blocks = blocks.concat(classes);
         }
 
-        blocks.push(clientCode);
+        if (!this.options.interfacesOnly) blocks.push(clientCode);
 
         if (this.options.singleFile) {
             this.writeSingleFile(blocks);
         } else {
             console.log("Writing interfaces to " + this.options.interfaceDestination);
             this.writeMultipleFiles(interfaces, this.options.interfaceDestination);
-            if (this.options.classDestination) {
+            if (this.options.classDestination && !this.options.interfacesOnly) {
                 console.log("Writing classes to " + this.options.classDestination);
                 this.writeMultipleFiles(classes, this.options.classDestination);
             }
 
-            this.mkdirSync(this.options.clientDestination);
-            var fileName = this.options.clientDestination + "/" + this.options.clientClassName + ".ts";
-            console.log("Writing client class to " + fileName);
-            var code = "/* tslint:disable:max-line-length */\n\n";
-            if (this.options.clientModuleName) {
-                code += "module " + this.options.clientModuleName + " {\n";
-                code += "\t\"use strict\";\n\n";
-                code += clientCode.body + "}\n\n";
-            } else {
-                code += clientCode.body;
+            if (!this.options.interfacesOnly) {
+              this.mkdirSync(this.options.clientDestination);
+
+              var fileName = this.options.clientDestination + "/" + this.options.clientClassName + ".ts";
+              console.log("Writing client class to " + fileName);
+              var code = "/* tslint:disable:max-line-length */\n\n";
+              if (this.options.clientModuleName && !this.options.interfacesOnly) {
+                  code += "module " + this.options.clientModuleName + " {\n";
+                  code += "\t\"use strict\";\n\n";
+                  code += clientCode.body + "}\n\n";
+              } else {
+                  code += clientCode.body;
+              }
             }
+
+            var fileName = this.options.interfaceDestination + '/' + this.options.clientRoutesName + ".ts";
+            console.log(fileName)
+            console.log("Writing client-route interfaces to " + fileName);
+            var code = "/* tslint:disable:max-line-length */\n\n";
+            code += clientRouteCode.body;
 
             fs.writeFileSync(fileName, code);
         }

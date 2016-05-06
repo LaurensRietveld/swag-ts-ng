@@ -23,6 +23,7 @@ exports.process = (options:any) => {
         opt.interfaceDestination = options.destination;
     }
 
+
     var swagSrv = new swaggerService(opt);
     swagSrv.process();
   }

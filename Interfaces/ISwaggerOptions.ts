@@ -5,6 +5,8 @@
     modelModuleName?: string
     clientDestination?: string;
     clientModuleName?: string;
+    clientRoutesName?: string;
     clientClassName?: string;
     singleFile?: boolean;
+    interfacesOnly?: boolean
 }

@@ -7,23 +7,27 @@ import interfaceCreator = require("./Creators/interfaceCreator");
 import classCreator     = require("./Creators/classCreator");
 import clientCreator    = require("./Creators/clientCreator");
 
+function sanitizeString(string: string) {
+  return string.trim().split(' ').join('_');
+}
 class SwaggerService {
     constructor(public options: ISwaggerOptions) {
         if (!this.options.interfaceDestination) {
-            options.interfaceDestination = "API/" + this.options.swaggerObject.info.title;
+            options.interfaceDestination = "API/" + sanitizeString(this.options.swaggerObject.info.title);
         }
 
         if (!this.options.modelModuleName) {
-            this.options.modelModuleName = "API." + this.options.swaggerObject.info.title;
+            this.options.modelModuleName = "API." + sanitizeString(this.options.swaggerObject.info.title);
         }
 
         if (!this.options.clientDestination) {
-            options.clientDestination = "API/" + this.options.swaggerObject.info.title;
+            options.clientDestination = "API/" + sanitizeString(this.options.swaggerObject.info.title);
         }
 
         if (!this.options.clientClassName) {
-            options.clientClassName = this.options.swaggerObject.info.title.trim() + "Client";
+            options.clientClassName = sanitizeString(this.options.swaggerObject.info.title) + "Client";
         }
+
     }
 
     public process() {

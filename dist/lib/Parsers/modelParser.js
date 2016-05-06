@@ -10,7 +10,8 @@ class modelParser {
             for (var p in definition.properties) {
                 var property = {
                     name: p,
-                    dataType: typeParser.parse(options, definition.properties[p], "I")
+                    dataType: typeParser.parse(options, definition.properties[p], "I"),
+                    required: definition.required && definition.required.indexOf(p) >= 0
                 };
                 properties.push(property);
             }

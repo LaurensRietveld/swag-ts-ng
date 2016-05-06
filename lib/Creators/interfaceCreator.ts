@@ -10,7 +10,7 @@ class interfaceCreator {
             body += "\texport interface I" + model.name + " {\n";
             for (var j = 0; j < model.properties.length; j++) {
                 var property: IPropertyDefinition = model.properties[j];
-                body += "\t\t" + property.name + ": " + property.dataType + ";\n";
+                body += "\t\t" + property.name + (property.required? '': '?') + ": " + property.dataType + ";\n";
             }
 
             body += "\t}\n";

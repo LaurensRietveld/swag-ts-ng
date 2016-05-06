@@ -7,20 +7,30 @@ const signatureCreator = require("./Creators/signatureCreator");
 const interfaceCreator = require("./Creators/interfaceCreator");
 const classCreator = require("./Creators/classCreator");
 const clientCreator = require("./Creators/clientCreator");
+const clientRouteCreator = require("./Creators/clientRouteCreator");
+function sanitizeString(string) {
+    return string.trim().split(' ').join('_');
+}
 class SwaggerService {
     constructor(options) {
         this.options = options;
         if (!this.options.interfaceDestination) {
-            options.interfaceDestination = "API/" + this.options.swaggerObject.info.title;
+            options.interfaceDestination = "API/" + sanitizeString(this.options.swaggerObject.info.title);
         }
         if (!this.options.modelModuleName) {
-            this.options.modelModuleName = "API." + this.options.swaggerObject.info.title;
+            this.options.modelModuleName = "API." + sanitizeString(this.options.swaggerObject.info.title);
         }
         if (!this.options.clientDestination) {
-            options.clientDestination = "API/" + this.options.swaggerObject.info.title;
+            options.clientDestination = "API/" + sanitizeString(this.options.swaggerObject.info.title);
         }
         if (!this.options.clientClassName) {
-            options.clientClassName = this.options.swaggerObject.info.title.trim() + "Client";
+            options.clientClassName = sanitizeString(this.options.swaggerObject.info.title) + "Client";
+        }
+        if (!this.options.clientRoutesName) {
+            options.clientRoutesName = sanitizeString(this.options.swaggerObject.info.title) + "Routes";
+        }
+        if (this.options.clientModuleName === undefined) {
+            options.clientModuleName = options.clientClassName + "Module";
         }
     }
     process() {
@@ -37,33 +47,43 @@ class SwaggerService {
         console.log(" --> Created: " + signatureDefinitions.length + " signatures");
         console.log("Creating client classes");
         var clientCode = clientCreator.create(this.options, signatureDefinitions);
+        console.log("Creating client-route interfaces");
+        var clientRouteCode = clientRouteCreator.create(this.options, signatureDefinitions);
         var blocks = interfaces;
         if (this.options.classDestination) {
             blocks = blocks.concat(classes);
         }
-        blocks.push(clientCode);
+        if (!this.options.interfacesOnly)
+            blocks.push(clientCode);
         if (this.options.singleFile) {
             this.writeSingleFile(blocks);
         }
         else {
             console.log("Writing interfaces to " + this.options.interfaceDestination);
             this.writeMultipleFiles(interfaces, this.options.interfaceDestination);
-            if (this.options.classDestination) {
+            if (this.options.classDestination && !this.options.interfacesOnly) {
                 console.log("Writing classes to " + this.options.classDestination);
                 this.writeMultipleFiles(classes, this.options.classDestination);
             }
-            this.mkdirSync(this.options.clientDestination);
-            var fileName = this.options.clientDestination + "/" + this.options.clientClassName + ".ts";
-            console.log("Writing client class to " + fileName);
+            if (!this.options.interfacesOnly) {
+                this.mkdirSync(this.options.clientDestination);
+                var fileName = this.options.clientDestination + "/" + this.options.clientClassName + ".ts";
+                console.log("Writing client class to " + fileName);
+                var code = "/* tslint:disable:max-line-length */\n\n";
+                if (this.options.clientModuleName && !this.options.interfacesOnly) {
+                    code += "module " + this.options.clientModuleName + " {\n";
+                    code += "\t\"use strict\";\n\n";
+                    code += clientCode.body + "}\n\n";
+                }
+                else {
+                    code += clientCode.body;
+                }
+            }
+            var fileName = this.options.interfaceDestination + '/' + this.options.clientRoutesName + ".ts";
+            console.log(fileName);
+            console.log("Writing client-route interfaces to " + fileName);
             var code = "/* tslint:disable:max-line-length */\n\n";
-            if (this.options.clientModuleName) {
-                code += "module " + this.options.clientModuleName + " {\n";
-                code += "\t\"use strict\";\n\n";
-                code += clientCode.body + "}\n\n";
-            }
-            else {
-                code += clientCode.body;
-            }
+            code += clientRouteCode.body;
             fs.writeFileSync(fileName, code);
         }
         console.log("Done!");
@@ -93,6 +113,7 @@ class SwaggerService {
             }
         });
         var fileName = this.options.clientDestination + "/" + this.options.clientClassName + ".ts";
+        this.mkdirSync(this.options.clientDestination);
         fs.writeFileSync(fileName, code);
     }
     mkdirSync(dirpath) {

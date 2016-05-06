@@ -6,33 +6,50 @@ import postCreator          = require("./postCreator");
 import putCreator           = require("./putCreator");
 
 
-interface bla_get {
 
-}
 class clientRouteCreator {
-    static getRouteBlock(usd: ISignatureDefinition) {
+
+    static getParamTypeAsString(paramType:ParamType) {
+      switch (paramType) {
+        case ParamType.Query:
+            return 'query';
+        case ParamType.Header:
+            return 'header';
+        case ParamType.Path:
+            return 'path';
+        case ParamType.FormData:
+            return 'formData';
+        case ParamType.Body:
+            return 'body';
+        default:
+          throw new Error('undefined parameter enum');
+      }
+    }
+    static getMethodBlock(usd: ISignatureDefinition) {
       //path to name
 
-      var name = usd.path.split('/').join('_') + '_' + usd.method;
-      if (name.charAt(0) == "_") name = name.substring(1);
-      name = name.replace(/[{}]/g, '_');
+      // name = name.replace(/[{}]/g, '_');
 
-      var routeBlock = 'export interface ' + name + '{\n';
-      usd.parameters.forEach(function(val) {
-        routeBlock += "\t" + val.name + (val.required? '':'?') + ": " + val.dataType + ";\n";
-        // console.log(val);
-        // process.exit(1)
+      var methodBlock = '\texport module ' + (usd.method === 'delete'? 'del': usd.method) + ' {\n';
+      var groupedParams = _.groupBy(usd.parameters, function(param) {
+        return param.paramType
       })
-      routeBlock += "}\n\n"
-      // for (var j = 0; j < model.properties.length; j++) {
-      //     var property: IPropertyDefinition = model.properties[j];
-      //     body += "\t\t" + property.name + ": " + property.dataType + ";\n";
-      // }
+      //go through all param types. create empty interface if needed
+      _.forEach([ParamType.Query, ParamType.Header, ParamType.Path, ParamType.FormData, ParamType.Body], function(paramType) {
+        var paramName = clientRouteCreator.getParamTypeAsString(paramType);
+        var paramTypeBlock = '\t\texport interface ' + paramName + ' {';
+        if (groupedParams[paramType]) {
+          paramTypeBlock += '\n';
+          groupedParams[paramType].forEach(function(param) {
 
-      // console.log(usd);
-      // process.exit(1)
-
-      return routeBlock;
+            paramTypeBlock += "\t\t\t" + param.name + (param.required? '':'?') + ": " + param.dataType + ";\n";
+          })
+        }
+        paramTypeBlock += '\t\t}\n';
+        methodBlock += paramTypeBlock;
+      })
+      methodBlock += "\t}\n"
+      return methodBlock;
     }
     static create(options: ISwaggerOptions, signatureDefinitions: ISignatureDefinition[]): ICodeBlock {
         var template: string = "";
@@ -45,9 +62,23 @@ class clientRouteCreator {
         // get a list of unique signatures names
         var uniqSignatures = _.uniq(signatureDefinitions, 'methodName');
 
+        //want to loop through these in the hierarchy: router -> method -> param types (body|query|path)
+        var groupedByPath = _.groupBy(uniqSignatures, function(usd) {
+          return usd.path
+        })
         // loop through unique signatures
-        _.forEach(uniqSignatures, (usd: ISignatureDefinition) => {
-            signatureText += clientRouteCreator.getRouteBlock(usd)
+        _.forEach(groupedByPath, function(usds, path) {
+          var routeName = path.split('/').join('_');
+          routeName = routeName.replace(/[{}]/g, '_');
+          if (routeName.charAt(0) == "_") routeName = routeName.substring(1);
+          signatureText += 'export module ' + routeName + ' {\n'
+          _.forEach(usds, function(usd) {
+            signatureText += clientRouteCreator.getMethodBlock(usd)
+          })
+          signatureText += "}\n\n"
+        })
+        // _.forEach(uniqSignatures, (usd: ISignatureDefinition) => {
+            // signatureText += clientRouteCreator.getMethodBlock(usd)
 
 
             // get list of signatures with matching methodName
@@ -113,7 +144,7 @@ class clientRouteCreator {
             //         signatureText += putCreator.create(signatures[0]);
             //     }
             // }
-        });
+        // });
         template = template.replace("[FUNCTIONS]", signatureText);
 
         // if (options.clientModuleName) {

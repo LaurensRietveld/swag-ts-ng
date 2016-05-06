@@ -27,7 +27,9 @@ class SwaggerService {
         if (!this.options.clientClassName) {
             options.clientClassName = sanitizeString(this.options.swaggerObject.info.title) + "Client";
         }
-
+        if (!this.options.clientModuleName) {
+          options.clientModuleName = options.clientClassName + "Module"
+        }
     }
 
     public process() {
@@ -66,7 +68,6 @@ class SwaggerService {
         } else {
             console.log("Writing interfaces to " + this.options.interfaceDestination);
             this.writeMultipleFiles(interfaces, this.options.interfaceDestination);
-
             if (this.options.classDestination) {
                 console.log("Writing classes to " + this.options.classDestination);
                 this.writeMultipleFiles(classes, this.options.classDestination);

@@ -30,34 +30,35 @@ class clientRouteCreator {
 
       // name = name.replace(/[{}]/g, '_');
 
-      var methodBlock = '\texport module ' + (usd.method === 'delete'? 'del': usd.method) + ' {\n';
+      var methodBlock = '\t\t\texport module ' + (usd.method === 'delete'? 'del': usd.method) + ' {\n';
       var groupedParams = _.groupBy(usd.parameters, function(param) {
         return param.paramType
       })
       //go through all param types. create empty interface if needed
       _.forEach([ParamType.Query, ParamType.Header, ParamType.Path, ParamType.FormData, ParamType.Body], function(paramType) {
         var paramName = clientRouteCreator.getParamTypeAsString(paramType);
-        var paramTypeBlock = '\t\texport interface ' + paramName + ' {';
+        var paramTypeBlock = '\t\t\t\texport interface ' + paramName + ' {';
         if (groupedParams[paramType]) {
           paramTypeBlock += '\n';
           groupedParams[paramType].forEach(function(param) {
 
-            paramTypeBlock += "\t\t\t" + param.name + (param.required? '':'?') + ": " + param.dataType + ";\n";
+            paramTypeBlock += "\t\t\t\t\t" + param.name + (param.required? '':'?') + ": " + param.dataType + ";\n";
           })
         }
-        paramTypeBlock += '\t\t}\n';
+        paramTypeBlock += '\t\t\t\t}\n';
         methodBlock += paramTypeBlock;
       })
       _.forEach(usd.responses, function(respClass, respStatus) {
-        methodBlock += '\t\texport interface Response_' + respStatus + (respClass? ' extends ' + respClass + ' ' : ' ') + '{}\n'
+        methodBlock += '\t\t\t\texport interface Response_' + respStatus + (respClass? ' extends ' + respClass + ' ' : ' ') + '{}\n'
       })
-      methodBlock += "\t}\n"
+      methodBlock += "\t\t\t}\n"
       return methodBlock;
     }
     static create(options: ISwaggerOptions, signatureDefinitions: ISignatureDefinition[]): ICodeBlock {
         var template: string = "";
-        // template += "module " + options.modelModuleName + " {\n";
-        template = "[FUNCTIONS]\n";
+        template += "module " + options.modelModuleName + " {\n";
+        template += "\texport module IRoutes {\n";
+        template += "[FUNCTIONS]\n";
 
         var signatureText = "";
 
@@ -73,14 +74,15 @@ class clientRouteCreator {
           var routeName = path.split('/').join('_');
           routeName = routeName.replace(/[{}]/g, '_');
           if (routeName.charAt(0) == "_") routeName = routeName.substring(1);
-          signatureText += 'export module ' + routeName + ' {\n'
+          signatureText += '\t\texport module ' + routeName + ' {\n'
           _.forEach(usds, function(usd) {
             signatureText += clientRouteCreator.getMethodBlock(usd)
           })
-          signatureText += "}\n\n"
+          signatureText += "\t\t}\n\n"
         })
         template = template.replace("[FUNCTIONS]", signatureText);
-
+        template += "\t}\n"
+        template += "}"
         var result: ICodeBlock = {
             codeType: CodeBlockType.ClientClass,
             moduleName: options.clientModuleName,

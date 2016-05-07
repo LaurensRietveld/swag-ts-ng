@@ -2,12 +2,12 @@ import 'source-map-support/register'//to get ts stacktraces
 import swaggerService   = require("./lib/SwaggerService");
 import http             = require("http");
 import fs               = require("fs")
-
+import path             = require("path")
+var yaml = require('js-yaml');
 
 exports.process = (options:any) => {
   function runConversion(swaggerString: string) {
-    var swaggerObject: Swagger.ISwagger = JSON.parse(swaggerString);
-
+    var swaggerObject: Swagger.ISwagger = yaml.safeLoad(swaggerString);
     var opt: ISwaggerOptions = options;
     opt.swaggerObject = swaggerObject;
 
@@ -27,6 +27,7 @@ exports.process = (options:any) => {
     var swagSrv = new swaggerService(opt);
     swagSrv.process();
   }
+
     if (!options) {
         console.error("Sorry. Please supply options with swaggerPath");
     } else {

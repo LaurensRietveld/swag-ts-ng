@@ -48,9 +48,14 @@ class clientRouteCreator {
         paramTypeBlock += '\t\t\t\t}\n';
         methodBlock += paramTypeBlock;
       })
+      var responseIfaces:string[] = []
       _.forEach(usd.responses, function(respClass, respStatus) {
-        methodBlock += '\t\t\t\texport interface Response_' + respStatus + (respClass? ' extends ' + respClass + ' ' : ' ') + '{}\n'
+        var respName = 'Response_' + respStatus;
+        methodBlock += '\t\t\t\texport interface ' + respName + (respClass? ' extends ' + respClass + ' ' : ' ') + '{}\n'
+        responseIfaces.push(respName);
       })
+      //add combined response type as well
+      methodBlock += '\t\t\t export type Response = ' + responseIfaces.join(' | ')
       methodBlock += "\t\t\t}\n"
       return methodBlock;
     }

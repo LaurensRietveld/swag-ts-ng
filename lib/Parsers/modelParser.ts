@@ -22,7 +22,7 @@ class modelParser {
           }
 
           if (definition.allOf) {
-            _.forEach(definition.allOf, function(val) {
+            _.forEach(definition.allOf, function(val:any) {
               if (val['$ref']) {
                 var refName = val['$ref'].replace("#/definitions/", "");
                 //very simpel circular dependency check

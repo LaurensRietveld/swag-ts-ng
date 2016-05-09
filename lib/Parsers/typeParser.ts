@@ -24,7 +24,7 @@ class typeParser {
 
             return moduleName + res;
         }
-
+        if (!property.type) return null;
         switch (property.type) {
             case "array":
                 return 'Array<'+this.parse(options, property.items, modelPrefix)+'>';
@@ -41,8 +41,7 @@ class typeParser {
 
                 return "string";
         }
-
-        console.warn("Warning: Unknown data type '" + property.type + "'");
+        console.warn("Warning: Unknown data type '" + property.type + "' for property", property);
         return property.type;
     }
 }

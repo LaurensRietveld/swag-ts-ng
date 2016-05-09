@@ -26,7 +26,7 @@ class SwaggerService {
         }
 
         if (!this.options.clientClassName) {
-            options.clientClassName = sanitizeString(this.options.swaggerObject.info.title) + "Client";
+            options.clientClassName = sanitizeString(this.options.swaggerObject.info.title);
         }
         if (!this.options.clientRoutesName) {
             options.clientRoutesName = sanitizeString(this.options.swaggerObject.info.title) + "Routes";
@@ -68,7 +68,7 @@ class SwaggerService {
         if (this.options.classDestination) {
             blocks = blocks.concat(classes);
         }
-
+        blocks.push(clientRouteCode)
         if (!this.options.interfacesOnly) blocks.push(clientCode);
 
         if (this.options.singleFile) {
@@ -122,17 +122,19 @@ class SwaggerService {
     private writeSingleFile(blocks: ICodeBlock[]): void {
         var code = "/* tslint:disable:max-line-length */\n\n";
         var modules = _.groupBy(blocks, (b: ICodeBlock) => { return b.moduleName; });
+        code += 'import * as Koa from \'koa\'\nimport * as Router from \'koa-router\';\n\n'
+        // code += "export default module " + this.options.modelModuleName + " {\n"
         _.forEach(modules, (m: ICodeBlock[]) => {
+          // console.log(m)
             if (m[0].moduleName) {
-                code += "module " + m[0].moduleName + " {\n";
-                code += "\t\"use strict\";\n";
+                // console.log(m[0].moduleName)
+                code += "export module " + m[0].moduleName + " {\n";
                 _.forEach(m, (cb: ICodeBlock) => { code += "\n" + cb.body; });
                 code += "}\n\n";
             } else {
                 _.forEach(m, (cb: ICodeBlock) => { code += cb.body + "\n"; });
             }
         });
-
         var fileName = this.options.clientDestination + "/" + this.options.clientClassName + ".ts";
         this.mkdirSync(this.options.clientDestination)
         fs.writeFileSync(fileName, code);

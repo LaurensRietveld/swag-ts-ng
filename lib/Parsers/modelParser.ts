@@ -13,7 +13,7 @@ class modelParser {
                 var property: IPropertyDefinition = {
                     name: p,
                     dataType: typeParser.parse(options, propertiesObject[p], "I"),
-                    required: required && required.indexOf(p) >= 0
+                    required: (required && required.indexOf(p) >= 0) || propertiesObject[p].required
                 };
 
                 propArray.push(property);

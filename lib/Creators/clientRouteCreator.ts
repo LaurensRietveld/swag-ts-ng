@@ -1,6 +1,7 @@
 ﻿import _                    = require("lodash");
 import deleteCreator        = require("./deleteCreator");
 import documentationCreator = require("./documentationCreator");
+import interfaceCreator     = require("./interfaceCreator");
 import getCreator           = require("./getCreator");
 import postCreator          = require("./postCreator");
 import putCreator           = require("./putCreator");
@@ -25,16 +26,17 @@ class clientRouteCreator {
           throw new Error('undefined parameter enum');
       }
     }
-    static getMethodBlock(usd: ISignatureDefinition) {
+    static getMethodBlock(options: ISwaggerOptions,usd: ISignatureDefinition) {
+
       //path to name
 
       // name = name.replace(/[{}]/g, '_');
 
-      var methodBlock = '\t\t\texport module ' + (usd.method === 'delete'? 'del': usd.method) + ' {\n';
+      var methodBlock = '\t\t\texport module ' + clientRouteCreator.getMethodName(usd.method) + ' {\n';
       var groupedParams = _.groupBy(usd.parameters, function(param) {
         return param.paramType
       })
-      //go through all param types. create empty interface if needed
+      //go through all param types
       _.forEach([ParamType.Query, ParamType.Header, ParamType.Path, ParamType.FormData, ParamType.Body], function(paramType) {
         var paramName = clientRouteCreator.getParamTypeAsString(paramType);
         var paramTypeBlock = '\t\t\t\texport interface ' + paramName + ' {';
@@ -55,15 +57,37 @@ class clientRouteCreator {
         responseIfaces.push(respName);
       })
       //add combined response type as well
-      methodBlock += '\t\t\t export type Response = ' + responseIfaces.join(' | ')
+      methodBlock += '\t\t\t\texport type Response = ' + responseIfaces.join(' | ') + '\n'
+
+      //export middleware that links all info above together
+      methodBlock += '\t\t\t\texport module IKoa {\n';
+      methodBlock += '\t\t\t\t\texport interface Request extends Koa.Request {\n';
+      methodBlock += '\t\t\t\t\t\tquery: query\n';
+      methodBlock += '\t\t\t\t\t\tbody: body\n';
+      methodBlock += '\t\t\t\t\t}\n';
+      methodBlock += '\t\t\t\t\texport interface Context extends Router.IRouterContext {\n';
+      // methodBlock += '\t\t\t\t\t\tquery: ' + [options.clientRoutesName, clientRouteCreator.getRouteName(usd.path), clientRouteCreator.getMethodName(usd.method), 'query'].join('.') + ',\n';
+      // methodBlock += '\t\t\t\t\t\tbody: ' + [options.clientRoutesName, clientRouteCreator.getRouteName(usd.path), clientRouteCreator.getMethodName(usd.method), 'body'].join('.') + ',\n';
+      methodBlock += '\t\t\t\t\t\tquery: query\n';
+      methodBlock += '\t\t\t\t\t\tbody: body\n';
+      methodBlock += '\t\t\t\t\t}\n';
+      methodBlock += '\t\t\t\t}\n';
+      methodBlock += '\t\t\t\t\texport interface Middleware {\n';
+      methodBlock += '\t\t\t\t\t\t(ctx: IKoa.Context, next?: () => any): Response | void;\n'
+      methodBlock += '\t\t\t\t}\n';
       methodBlock += "\t\t\t}\n"
       return methodBlock;
     }
+    static getRouteName(path: string) {
+      if (path.charAt(0) == '/') path = path.substring(1)
+      var routeName = path.split('/').join('_');
+      return routeName.replace(/[{}]/g, '_');
+    }
+    static getMethodName(methodName: string) {
+      return (methodName === 'delete'? 'del': methodName)
+    }
     static create(options: ISwaggerOptions, signatureDefinitions: ISignatureDefinition[]): ICodeBlock {
         var template: string = "";
-        template += "module " + options.modelModuleName + " {\n";
-        template += "\texport module IRoutes {\n";
-        template += "[FUNCTIONS]\n";
 
         var signatureText = "";
 
@@ -80,17 +104,16 @@ class clientRouteCreator {
           routeName = routeName.replace(/[{}]/g, '_');
           if (routeName.charAt(0) == "_") routeName = routeName.substring(1);
           signatureText += '\t\texport module ' + routeName + ' {\n'
+          var methodInterfaces: {[key: string]: string} = {}
           _.forEach(usds, function(usd) {
-            signatureText += clientRouteCreator.getMethodBlock(usd)
+            signatureText += clientRouteCreator.getMethodBlock(options,usd)
           })
           signatureText += "\t\t}\n\n"
         })
-        template = template.replace("[FUNCTIONS]", signatureText);
-        template += "\t}\n"
-        template += "}"
+        template += signatureText;
         var result: ICodeBlock = {
             codeType: CodeBlockType.ClientClass,
-            moduleName: options.clientModuleName,
+            moduleName: options.clientRoutesName,
             name: options.clientClassName,
             body: template
         }

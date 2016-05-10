@@ -24,25 +24,39 @@ class typeParser {
 
             return moduleName + res;
         }
+        if (property.enum) {
+          console.log(property)
+        }
         if (!property.type) return null;
+
         switch (property.type) {
             case "array":
                 return 'Array<'+this.parse(options, property.items, modelPrefix)+'>';
             case "boolean":
                 return "boolean";
             case "integer":
-                return "number";
             case "number":
-                return "number";
+              if (property.enum) {
+                return property.enum.join(' | ');
+              } else {
+                return"number"
+              };
             case "string":
                 if (property.format === "date-time" || property.format === "date") {
                     return "Date";
+                } else if (property.enum) {
+                  return property.enum.map(function(enumItem:string){
+                      // This will wrap each element of the dates array with quotes
+                      return '"' + enumItem + '"';
+                  }).join(" | "); // This puts a comma in between every element
+                } else {
+                  return "string";
                 }
+            default:
+              console.warn("Warning: Unknown data type '" + property.type + "' for property", property);
+              return property.type;
 
-                return "string";
         }
-        console.warn("Warning: Unknown data type '" + property.type + "' for property", property);
-        return property.type;
     }
 }
 

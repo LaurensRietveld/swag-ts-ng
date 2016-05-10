@@ -21,12 +21,15 @@ class modelParser {
             return propArray;
           }
 
+          var extendModels: string[] = []
           if (definition.allOf) {
+            //allof is not actual inheritance. But, to keep this simple, treat it as such in typescript
             _.forEach(definition.allOf, function(val:any) {
               if (val['$ref']) {
                 var refName = val['$ref'].replace("#/definitions/", "");
                 //very simpel circular dependency check
-                if (modName != refName) properties = properties.concat(getPropsFromModule(refName));
+                // if (modName != refName) properties = properties.concat(getPropsFromModule(refName));
+                extendModels.push(refName);
               } else if (val['properties']) {
                 properties = properties.concat(getPropsFromList(val['properties'], val['required']));
               }
@@ -35,7 +38,7 @@ class modelParser {
             properties = properties.concat(getPropsFromList(definition.properties, definition.required));
           }
 
-          return properties;
+          return {properties, extendModels};
         }
         var models: IModelDefinition[] = [];
         for (var d in swaggerDefinitions) {
@@ -47,7 +50,8 @@ class modelParser {
                 moduleName: moduleName,
                 definitionName: "#/definitions/" + name,
                 name: name,
-                properties: properties
+                properties: properties.properties,
+                extends: properties.extendModels
             };
 
             models.push(model);

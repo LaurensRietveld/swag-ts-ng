@@ -65,7 +65,7 @@ class clientRouteCreator {
       methodBlock += '\t\t\t\t\t\tquery: query\n';
       methodBlock += '\t\t\t\t\t\tbody: body\n';
       methodBlock += '\t\t\t\t\t}\n';
-      methodBlock += '\t\t\t\t\texport interface Context extends Router.IRouterContext {\n';
+      methodBlock += '\t\t\t\t\texport interface Context extends Koa.Context {\n';
       // methodBlock += '\t\t\t\t\t\tquery: ' + [options.clientRoutesName, clientRouteCreator.getRouteName(usd.path), clientRouteCreator.getMethodName(usd.method), 'query'].join('.') + ',\n';
       // methodBlock += '\t\t\t\t\t\tbody: ' + [options.clientRoutesName, clientRouteCreator.getRouteName(usd.path), clientRouteCreator.getMethodName(usd.method), 'body'].join('.') + ',\n';
       methodBlock += '\t\t\t\t\t\tquery: query\n';

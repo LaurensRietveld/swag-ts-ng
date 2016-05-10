@@ -122,7 +122,8 @@ class SwaggerService {
     private writeSingleFile(blocks: ICodeBlock[]): void {
         var code = "/* tslint:disable:max-line-length */\n\n";
         var modules = _.groupBy(blocks, (b: ICodeBlock) => { return b.moduleName; });
-        code += 'import * as Koa from \'koa\'\nimport * as Router from \'koa-router\';\n\n'
+        if (this.options.clientRoutesImport) code += this.options.clientRoutesImport + '\n';
+        // code += 'import * as Koa from \'koa\'\nimport * as Router from \'koa-router\';\n\n'
         // code += "export default module " + this.options.modelModuleName + " {\n"
         _.forEach(modules, (m: ICodeBlock[]) => {
           // console.log(m)

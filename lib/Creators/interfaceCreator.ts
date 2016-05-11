@@ -11,16 +11,18 @@ class interfaceCreator {
             var model: IModelDefinition = models[i];
             var body = "";
             var name = "I" + model.name + "Props";
-            body += "\texport interface " + name + " {\n";
-            // if (model.extends.length > 0) body += ' extends I' + model.extends.join(', ');
-            // body +=  " {\n";
-            for (var j = 0; j < model.properties.length; j++) {
-                var property: IPropertyDefinition = model.properties[j];
-                body += "\t\t" + property.name + (property.required? '': '?') + ": " + property.dataType + ";\n";
+            body += "\texport interface " + name;
+            // console.log(model)
+            if (model.arrayType) {
+              body += " extends Array<I" + model.arrayType + "> {}\n"
+            } else {
+              body += " {\n";
+              for (var j = 0; j < model.properties.length; j++) {
+                  var property: IPropertyDefinition = model.properties[j];
+                  body += "\t\t" + property.name + (property.required? '': '?') + ": " + property.dataType + ";\n";
+              }
+              body += "\t}\n";
             }
-
-            body += "\t}\n";
-
 
 
             /**

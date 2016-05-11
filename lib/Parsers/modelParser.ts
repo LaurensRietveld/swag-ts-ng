@@ -3,8 +3,23 @@ import _          = require('lodash');
 
 class modelParser {
     static parse(options: ISwaggerOptions, swaggerDefinitions: any, moduleName: string): IModelDefinition[] {
-        var getPropsFromModule = function(modName: string) {
-          var definition = swaggerDefinitions[modName];
+        var getArrayType = function(definition:any) {
+          // var arrayType: string;
+          if (definition.items) {
+            // console.log(definition.items)
+            // process.exit(1)
+            if (definition.items['$ref']) {
+              var refName = definition.items['$ref'].replace("#/definitions/", "");
+              return refName;
+            } else {
+              console.error('Model typed as array, but without reference to other model. Not supported atm')
+            }
+          }
+          return null;
+        }
+
+        var getPropsFromModule = function(definition:any) {
+
           var properties: IPropertyDefinition[] = [];
 
           var getPropsFromList = function(propertiesObject:any, required: string[]) {
@@ -42,19 +57,29 @@ class modelParser {
         }
         var models: IModelDefinition[] = [];
         for (var d in swaggerDefinitions) {
-            var properties = getPropsFromModule(d);
             var name = d;
 
-
-            var model: IModelDefinition = {
-                moduleName: moduleName,
-                definitionName: "#/definitions/" + name,
-                name: name,
-                properties: properties.properties,
-                extends: properties.extendModels
-            };
-
-            models.push(model);
+            var definition = swaggerDefinitions[d];
+            if (definition.type == "array") {
+              models.push({
+                  moduleName: moduleName,
+                  definitionName: "#/definitions/" + name,
+                  arrayType: getArrayType(definition),
+                  name: name,
+                  properties: [],
+                  extends: []
+              });
+            } else {
+              var properties = getPropsFromModule(definition);
+              models.push({
+                  moduleName: moduleName,
+                  definitionName: "#/definitions/" + name,
+                  name: name,
+                  properties: properties.properties,
+                  extends: properties.extendModels,
+                  arrayType: null
+              });
+            }
         }
 
         return models;

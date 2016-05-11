@@ -91,11 +91,8 @@ class clientRouteCreator {
 
         var signatureText = "";
 
-        // get a list of unique signatures names
-        var uniqSignatures = _.uniq(signatureDefinitions, 'methodName');
-
         //want to loop through these in the hierarchy: router -> method -> param types (body|query|path)
-        var groupedByPath = _.groupBy(uniqSignatures, function(usd) {
+        var groupedByPath = _.groupBy(signatureDefinitions, function(usd) {
           return usd.path
         })
         // loop through unique signatures

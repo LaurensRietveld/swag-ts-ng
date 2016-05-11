@@ -24,9 +24,6 @@ class typeParser {
 
             return moduleName + res;
         }
-        if (property.enum) {
-          console.log(property)
-        }
         if (!property.type) return null;
 
         switch (property.type) {

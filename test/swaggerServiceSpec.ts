@@ -15,10 +15,10 @@ describe("SwaggerService", () => {
         //        destination: "xyz"
         //    };
 
-            
-            
+
+
         //    var swagSvc = new SwaggerService(options);
-            
+
         //    expect(swagSvc.options.destination).equals("xyz");
 
         //    expect(swagSvc.modelDefinitions.length).equals(0);
@@ -41,7 +41,7 @@ describe("SwaggerService", () => {
         //    expect(swagSvc.destPath).equals("API");
 
         //});
-       
+
 
     });
 

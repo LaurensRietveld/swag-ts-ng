@@ -2,7 +2,7 @@
 
 class parameterParser {
     static parse(options: ISwaggerOptions, property:any, modelPrefix: string): IParamDefinition {
-        var dataType = typeParser.parse(options, property, modelPrefix);
+        var dataType = typeParser.parse(options, property, options.modelModuleName, modelPrefix);
 
         var paramType: ParamType;
         switch (property.in) {

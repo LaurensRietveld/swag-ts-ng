@@ -27,7 +27,7 @@ class modelParser {
             for (var p in propertiesObject) {
                 var property: IPropertyDefinition = {
                     name: p,
-                    dataType: typeParser.parse(options, propertiesObject[p], "I"),
+                    dataType: typeParser.parse(options, propertiesObject[p], options.modelModuleName, "I"),
                     required: (required && required.indexOf(p) >= 0) || propertiesObject[p].required
                 };
 

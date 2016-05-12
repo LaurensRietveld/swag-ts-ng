@@ -1,9 +1,18 @@
 ﻿import _ = require("lodash");
 
 class typeParser {
-    static parse(options: ISwaggerOptions, property:any, modelPrefix?: string): string {
+    static swagNameToTs(modelMappings: {[swagDefName: string]: string}, swagRef: string, prefix:string) {
+      var tsReference:string = null;
+      _.forEach(modelMappings, function(val, key) {
+        if (swagRef.indexOf(key) === 0) tsReference = prefix + swagRef.substring(key.length);
+      })
+      return tsReference;
+    }
+    static parse(options: ISwaggerOptions, property:any,moduleName: string, modelPrefix: string ): string {
+
+      var modelMappings = options.modelMapping;
         if (property.schema) {
-            return this.parse(options, property.schema, modelPrefix);
+            return this.parse(options, property.schema,moduleName, modelPrefix);
         }
 
         if (property.$ref) {
@@ -13,13 +22,8 @@ class typeParser {
 
 
             var prefix: string = modelPrefix || "";
-            var res = property.$ref.replace("#/definitions/", "");
-            res = prefix + res;
-
-            var moduleName: string = "";
-            if (options.modelModuleName)
-                moduleName = options.modelModuleName + ".";
-
+            var res = typeParser.swagNameToTs(modelMappings,property.$ref, prefix)
+            moduleName = moduleName + ".";
 
 
             return moduleName + res;
@@ -28,7 +32,7 @@ class typeParser {
 
         switch (property.type) {
             case "array":
-                return 'Array<'+this.parse(options, property.items, modelPrefix)+'>';
+                return 'Array<'+this.parse(options, property.items,moduleName, modelPrefix)+'>';
             case "boolean":
                 return "boolean";
             case "integer":

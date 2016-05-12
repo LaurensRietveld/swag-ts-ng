@@ -6,4 +6,6 @@
     path: string;
     summary?: string;
     responses: {[status:string]: any}
+    responseHeaders: {[status:string]: any}
+    // responseHeaders:
 }

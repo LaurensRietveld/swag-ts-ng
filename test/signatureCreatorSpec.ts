@@ -1,7 +1,7 @@
 ﻿var expect: Chai.ExpectStatic = require('chai').expect;
 import SwaggerService = require("../lib/SwaggerService");
 import fs = require("fs");
-import interfaceCreator = require("../lib/Creators/interfaceCreator");
+import interfaceCreator = require("../lib/Creators/modelInterfaceCreator");
 import signatureCreator = require("../lib/Creators/signatureCreator");
 import _ = require("lodash");
 import testHelper = require("./samples/testHelper");
@@ -9,16 +9,16 @@ import testHelper = require("./samples/testHelper");
 describe("signatureCreator", () => {
     describe("create()", () => {
         it("should create an array of valid signature definitions", () => {
-            
+
             // prepare
             var swaggerObject: Swagger.ISwagger = testHelper.getSampleSwaggerObject();
 
             // act
             //var modelDefinitions: IModelDefinition[] = interfaceCreator.create(swaggerObject.definitions, "API.ContactsAPI");
 
-            
+
             //var signatureDefinitions:ISignatureDefinition[] = signatureCreator.create(modelDefinitions, swaggerObject.paths);
-            
+
             // assert #1
             //expect(signatureDefinitions.length).to.be.eq(7);
 
@@ -64,7 +64,7 @@ describe("signatureCreator", () => {
             //expect(signatureDefinitions[6].path).to.be.eq('/api/Contacts/Save');
             //expect(signatureDefinitions[6].method).to.be.eq('post');
 
-            
+
         });
     });
 

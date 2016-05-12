@@ -11,7 +11,7 @@
         paths: {}; // IPaths
         definitions: {}; //ISchema
         parameters: {}; //IParameter
-
+        'x-headers': {};
     }
 
 }

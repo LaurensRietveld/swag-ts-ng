@@ -1,7 +1,7 @@
 ﻿var expect: Chai.ExpectStatic = require('chai').expect;
 import SwaggerService = require("../lib/SwaggerService");
 import fs = require("fs");
-import interfaceCreator = require("../lib/Creators/interfaceCreator");
+import interfaceCreator = require("../lib/Creators/modelInterfaceCreator");
 import signatureCreator = require("../lib/Creators/signatureCreator");
 import getCreator = require("../lib/Creators/getCreator");
 import _ = require("lodash");
@@ -10,7 +10,7 @@ import testHelper = require("./samples/testHelper");
 describe("getCreator", () => {
     describe("create()", () => {
         it("should create valid code generation for get operations", () => {
-            
+
             //// prepare
             //var swaggerObject: Swagger.ISwagger = testHelper.getSampleSwaggerObject();
 
@@ -26,8 +26,8 @@ describe("getCreator", () => {
             //    console.log(testHelper.getContacts_GetById());
             //    expect(getCode).equals(testHelper.getContacts_GetById());
             //});
-            
-            
+
+
 
 
         });

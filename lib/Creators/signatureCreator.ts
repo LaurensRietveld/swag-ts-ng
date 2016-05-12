@@ -3,9 +3,9 @@ import parameterParser  = require("../Parsers/parameterParser");
 import typeParser       = require("../Parsers/typeParser");
 
 class signatureCreator {
-    static create(options: ISwaggerOptions, pathsObject:any, modelPrefix: string): ISignatureDefinition[] {
+    static create(options: ISwaggerOptions, pathsObject:any, modelPrefix: string, headerPrefix:string): ISignatureDefinition[] {
         var signatureDefinitions: ISignatureDefinition[] = [];
-
+        var modelMappings = options.modelMapping;
         for (var p in pathsObject) {
             // loop through the METHODS of the path
             for (var method in pathsObject[p]) {
@@ -13,6 +13,7 @@ class signatureCreator {
                     var functionName: string = pathsObject[p][method].operationId;
                     var parameters: any[] = pathsObject[p][method].parameters;
                     var responses: any = pathsObject[p][method].responses;
+                    var headers: any = pathsObject[p][method].headers;
                     var summary: any = pathsObject[p][method].summary;
 
                     var signature: string = functionName;
@@ -30,10 +31,17 @@ class signatureCreator {
                         signature += "()";
                     }
                     var responseTypes: {[status:string]: string} = {};
+                    var responseHeaders:{[status:string]: string} = {};
                     var responseFound: boolean = false;
                     for (var r in responses) {
-                        var responseType: string = typeParser.parse(options, responses[r], "I");
+                        var responseType: string = typeParser.parse(options, responses[r], options.modelModuleName, "I");
                         responseTypes[r] = responseType;
+                        var headerType: string;
+                        if (responses[r].headers) {
+                          headerType = typeParser.parse(options, responses[r].headers, options.headerModuleName,"I");
+                          responseHeaders[r] = headerType;
+                        }
+
                         if (r == "200") {
                             signature += ": ng.IPromise<" + responseType + ">;"
                             responseFound = true;
@@ -51,7 +59,8 @@ class signatureCreator {
                         parameters: paramDefs,
                         path: p,
                         method: method,
-                        responses: responseTypes
+                        responses: responseTypes,
+                        responseHeaders: responseHeaders
                     };
 
                     if (summary && summary.length > 0) {

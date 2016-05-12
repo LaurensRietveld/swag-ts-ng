@@ -1,14 +1,14 @@
 ﻿var expect: Chai.ExpectStatic   = require('chai').expect;
 import SwaggerService           = require("../lib/SwaggerService");
 import fs                       = require("fs");
-import interfaceCreator         = require("../lib/Creators/interfaceCreator");
+import interfaceCreator         = require("../lib/Creators/modelInterfaceCreator");
 import _                        = require("lodash");
 import testHelper               = require("./samples/testHelper");
 
 describe("interfaceCreator", () => {
     describe("create()", () => {
         it("should create an array of valid interface definitions", () => {
-            
+
             // prepare
             var swaggerObject:Swagger.ISwagger = testHelper.getSampleSwaggerObject();
 

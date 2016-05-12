@@ -1,7 +1,7 @@
 ﻿import _                    = require("lodash");
 import deleteCreator        = require("./deleteCreator");
 import documentationCreator = require("./documentationCreator");
-import interfaceCreator     = require("./interfaceCreator");
+import interfaceCreator     = require("./modelInterfaceCreator");
 import getCreator           = require("./getCreator");
 import postCreator          = require("./postCreator");
 import putCreator           = require("./putCreator");
@@ -56,8 +56,16 @@ class clientRouteCreator {
         methodBlock += '\t\t\t\texport interface ' + respName + (respClass? ' extends ' + respClass + ' ' : ' ') + '{}\n'
         responseIfaces.push(respName);
       })
-      //add combined response type as well
+      var headerIfaces:string[] = []
+      _.forEach(usd.responseHeaders, function(respClass, respStatus) {
+        var respName = 'Response_' + respStatus + '_Headers';
+        methodBlock += '\t\t\t\texport interface ' + respName + (respClass? ' extends ' + respClass + ' ' : ' ') + '{}\n'
+        headerIfaces.push(respName);
+      })
+
+      //add combined response types as well
       methodBlock += '\t\t\t\texport type Response = ' + responseIfaces.join(' | ') + '\n'
+      methodBlock += '\t\t\t\texport type ResponseHeaders = ' + (headerIfaces.length > 0? headerIfaces.join(' | '): 'void') + '\n'
 
       //export middleware that links all info above together
       methodBlock += '\t\t\t\texport module IKoa {\n';
@@ -65,11 +73,14 @@ class clientRouteCreator {
       methodBlock += '\t\t\t\t\t\tquery: query\n';
       methodBlock += '\t\t\t\t\t\tbody: body\n';
       methodBlock += '\t\t\t\t\t}\n';
+      methodBlock += '\t\t\t\t\texport interface Response extends Koa.Response {\n';
+      methodBlock += '\t\t\t\t\t\theaders: ResponseHeaders\n';
+      methodBlock += '\t\t\t\t\t}\n';
       methodBlock += '\t\t\t\t\texport interface Context extends Koa.Context {\n';
-      // methodBlock += '\t\t\t\t\t\tquery: ' + [options.clientRoutesName, clientRouteCreator.getRouteName(usd.path), clientRouteCreator.getMethodName(usd.method), 'query'].join('.') + ',\n';
-      // methodBlock += '\t\t\t\t\t\tbody: ' + [options.clientRoutesName, clientRouteCreator.getRouteName(usd.path), clientRouteCreator.getMethodName(usd.method), 'body'].join('.') + ',\n';
       methodBlock += '\t\t\t\t\t\tquery: query\n';
       methodBlock += '\t\t\t\t\t\tbody: body\n';
+      methodBlock += '\t\t\t\t\t\trequest: Request\n';
+      methodBlock += '\t\t\t\t\t\tresponse:Response\n';
       methodBlock += '\t\t\t\t\t}\n';
       methodBlock += '\t\t\t\t}\n';
       methodBlock += '\t\t\t\t\texport interface Middleware {\n';

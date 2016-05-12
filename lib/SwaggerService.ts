@@ -2,8 +2,10 @@
 import path             = require("path");
 import _                = require("lodash");
 import modelParser      = require("./Parsers/modelParser");
+import headerParser      = require("./Parsers/headerParser");
 import signatureCreator = require("./Creators/signatureCreator");
-import interfaceCreator = require("./Creators/interfaceCreator");
+import modelInterfaceCreator = require("./Creators/modelInterfaceCreator");
+import headerInterfaceCreator = require("./Creators/headerInterfaceCreator");
 import classCreator     = require("./Creators/classCreator");
 import clientCreator    = require("./Creators/clientCreator");
 import clientRouteCreator = require("./Creators/clientRouteCreator");
@@ -19,6 +21,9 @@ class SwaggerService {
 
         if (!this.options.modelModuleName) {
             this.options.modelModuleName = "API." + sanitizeString(this.options.swaggerObject.info.title);
+        }
+        if (!this.options.headerModuleName) {
+            this.options.headerModuleName = "Headers"
         }
 
         if (!this.options.clientDestination) {
@@ -42,10 +47,16 @@ class SwaggerService {
         var modelDefinitions: IModelDefinition[] = modelParser.parse(this.options, this.options.swaggerObject.definitions, this.options.modelModuleName);
         console.log(" --> Created: " + modelDefinitions.length + " models");
 
+        console.log('Parsing headers');
+        var headerDefinitions: IHeadersDefinition[] = headerParser.parse(this.options, this.options.swaggerObject['x-headers'], this.options.headerModuleName);
+        console.log(" --> Created: " + headerDefinitions.length + " headers");
+
         // loop through definitions
         console.log("Creating model interfaces");
-        // console.log(modelDefinitions);process.exit(1)
-        var interfaces: ICodeBlock[] = interfaceCreator.create(modelDefinitions, this.options.modelModuleName);
+        var modelInterfaces: ICodeBlock[] = modelInterfaceCreator.create(modelDefinitions, this.options.modelModuleName);
+
+        console.log("Creating header interfaces");
+        var headerInterfaces: ICodeBlock[] = headerInterfaceCreator.create(headerDefinitions, this.options.headerModuleName);
 
         console.log("Creating model classes");
         var classes: ICodeBlock[] = classCreator.create(modelDefinitions, this.options.modelModuleName);
@@ -53,7 +64,8 @@ class SwaggerService {
         // loop through paths and create Signature definitions to pass to the clientCreator creator
         console.log("Creating Function signatures from swagger.paths");
         var modelPrefix: string = this.options.modelModuleName !== this.options.clientModuleName ? this.options.modelModuleName + "." : "";
-        var signatureDefinitions: ISignatureDefinition[] = signatureCreator.create(this.options, this.options.swaggerObject.paths, modelPrefix);
+        var headerPrefix: string = this.options.headerModuleName !== this.options.clientModuleName ? this.options.headerModuleName + "." : "";
+        var signatureDefinitions: ISignatureDefinition[] = signatureCreator.create(this.options, this.options.swaggerObject.paths, modelPrefix, headerPrefix);
         console.log(" --> Created: " + signatureDefinitions.length + " signatures");
 
         // we have all we need, now create the client code to access the API
@@ -64,18 +76,20 @@ class SwaggerService {
         var clientRouteCode: ICodeBlock = clientRouteCreator.create(this.options, signatureDefinitions);
 
         // done, now lets go ahead and create the code files
-        var blocks: ICodeBlock[] = interfaces;
+        var blocks: ICodeBlock[] = modelInterfaces;
         if (this.options.classDestination) {
             blocks = blocks.concat(classes);
         }
+        blocks = blocks.concat(headerInterfaces)
         blocks.push(clientRouteCode)
+
         if (!this.options.interfacesOnly) blocks.push(clientCode);
 
         if (this.options.singleFile) {
             this.writeSingleFile(blocks);
         } else {
             console.log("Writing interfaces to " + this.options.interfaceDestination);
-            this.writeMultipleFiles(interfaces, this.options.interfaceDestination);
+            this.writeMultipleFiles(modelInterfaces, this.options.interfaceDestination);
             if (this.options.classDestination && !this.options.interfacesOnly) {
                 console.log("Writing classes to " + this.options.classDestination);
                 this.writeMultipleFiles(classes, this.options.classDestination);
@@ -123,8 +137,7 @@ class SwaggerService {
         var code = "/* tslint:disable:max-line-length */\n\n";
         var modules = _.groupBy(blocks, (b: ICodeBlock) => { return b.moduleName; });
         if (this.options.clientRoutesImport) code += this.options.clientRoutesImport + '\n';
-        // code += 'import * as Koa from \'koa\'\nimport * as Router from \'koa-router\';\n\n'
-        // code += "export default module " + this.options.modelModuleName + " {\n"
+        // console.log(blocks)
         _.forEach(modules, (m: ICodeBlock[]) => {
           // console.log(m)
             if (m[0].moduleName) {

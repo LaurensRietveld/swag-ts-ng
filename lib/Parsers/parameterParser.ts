@@ -32,11 +32,10 @@ class parameterParser {
             paramDef += "?";
         }
         paramDef += ": " + dataType;
-
         var result: IParamDefinition = {
             name: property.name,
             paramType: paramType,
-            required: property.required,
+            required: property.required || !!(property.default),//set as required in ts when we've got default vals
             items: property.items,
             dataType: dataType,
             text: paramDef

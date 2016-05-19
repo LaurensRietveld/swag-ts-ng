@@ -84,7 +84,7 @@ class clientRouteCreator {
       methodBlock += '\t\t\t\t\t}\n';
       methodBlock += '\t\t\t\t}\n';
       methodBlock += '\t\t\t\t\texport interface Middleware {\n';
-      methodBlock += '\t\t\t\t\t\t(ctx: IKoa.Context, next?: () => any): Response | void;\n'
+      methodBlock += '\t\t\t\t\t\t(ctx: IKoa.Context, next?: () => any): Promise<Response> | Response | void;\n'
       methodBlock += '\t\t\t\t}\n';
       methodBlock += "\t\t\t}\n"
       return methodBlock;

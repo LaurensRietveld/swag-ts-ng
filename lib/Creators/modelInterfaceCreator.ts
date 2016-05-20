@@ -23,7 +23,6 @@ class interfaceCreator {
               }
               body += "\t}\n";
             }
-            console.log(body)
 
             /**
             Interface including extended Interfaces

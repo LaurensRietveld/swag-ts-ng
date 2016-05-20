@@ -11,8 +11,8 @@ class interfaceCreator {
             var headerDef: IHeadersDefinition = headers[i];
             var body = "";
             var name = "I" + headerDef.name;
+            var keys:string[] = []
             body += "\texport interface " + name;
-            // console.log(model)
             // if (header.arrayType) {
             //   body += " extends Array<I" + header.arrayType + "> {}\n"
             // } else {
@@ -20,8 +20,10 @@ class interfaceCreator {
               for (var j = 0; j < headerDef.headers.length; j++) {
                   var header: IPropertyDefinition = headerDef.headers[j];
                   body += "\t\t" + header.name + (header.required? '': '?') + ": " + header.dataType + ";\n";
+                  keys.push("'" + header.name + "'");
               }
               body += "\t}\n";
+              body += '\texport type ' + name + 'Keys = ' + keys.join(' | ') + ';\n'
             // }
 
 

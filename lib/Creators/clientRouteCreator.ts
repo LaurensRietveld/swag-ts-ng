@@ -36,55 +36,70 @@ class clientRouteCreator {
       var groupedParams = _.groupBy(usd.parameters, function(param) {
         return param.paramType
       })
-      //go through all param types
+      methodBlock += '\t\t\t\texport module req {\n'
+      //go through all request parameters
       _.forEach([ParamType.Query, ParamType.Header, ParamType.Path, ParamType.FormData, ParamType.Body], function(paramType) {
         var paramName = clientRouteCreator.getParamTypeAsString(paramType);
-        var paramTypeBlock = '\t\t\t\texport interface ' + paramName + ' {';
+        var paramTypeBlock = '\t\t\t\t\texport interface ' + paramName + ' {';
         if (groupedParams[paramType]) {
           paramTypeBlock += '\n';
           groupedParams[paramType].forEach(function(param) {
 
-            paramTypeBlock += "\t\t\t\t\t" + param.name + (param.required? '':'?') + ": " + param.dataType + ";\n";
+            paramTypeBlock += "\t\t\t\t\t\t" + param.name + (param.required? '':'?') + ": " + param.dataType + ";\n";
           })
         }
-        paramTypeBlock += '\t\t\t\t}\n';
+        paramTypeBlock += '\t\t\t\t\t}\n';
         methodBlock += paramTypeBlock;
       })
+      methodBlock += '\t\t\t\t}\n'
+
+      methodBlock += '\t\t\t\texport module res {\n'
       var responseIfaces:string[] = []
       _.forEach(usd.responses, function(respClass, respStatus) {
         var respName = 'Response_' + respStatus;
-        methodBlock += '\t\t\t\texport interface ' + respName + (respClass? ' extends ' + respClass + ' ' : ' ') + '{}\n'
+        methodBlock += '\t\t\t\t\texport interface ' + respName + (respClass? ' extends ' + respClass + ' ' : ' ') + '{}\n'
         responseIfaces.push(respName);
       })
       var headerIfaces:string[] = []
+      var headerKeys:string[] = ['((field: any, val: any) => void)']//generic setter. always add this one
       _.forEach(usd.responseHeaders, function(respClass, respStatus) {
         var respName = 'Response_' + respStatus + '_Headers';
-        methodBlock += '\t\t\t\texport interface ' + respName + (respClass? ' extends ' + respClass + ' ' : ' ') + '{}\n'
+        methodBlock += '\t\t\t\t\texport interface ' + respName + (respClass? ' extends ' + respClass + ' ' : ' ') + '{}\n'
         headerIfaces.push(respName);
+
+
+        var setterName = 'Response_' + respStatus + '_HeaderKeys';
+        methodBlock += '\t\t\t\t\texport type ' + setterName + ' = ' + (respClass? respClass + 'Keys' : 'any') + ';\n';
+        headerKeys.push(setterName)
       })
 
-      //add combined response types as well
-      methodBlock += '\t\t\t\texport type Response = ' + responseIfaces.join(' | ') + '\n'
-      methodBlock += '\t\t\t\texport type ResponseHeaders = ' + (headerIfaces.length > 0? headerIfaces.join(' | '): 'void') + '\n'
 
+      //add combined response types as well
+      methodBlock += '\t\t\t\t\texport type body = ' + responseIfaces.join(' | ') + '\n'
+      methodBlock += '\t\t\t\t\texport type headers = ' + (headerIfaces.length > 0? headerIfaces.join(' | '): 'void') + '\n'
+      methodBlock += '\t\t\t\t\texport type headerSetter = (field: ' + (headerKeys.length > 0? headerKeys.join(' | '): 'any') + ', val: string) => void\n'
+      methodBlock += '\t\t\t\t}\n'
       //export middleware that links all info above together
-      methodBlock += '\t\t\t\texport module IKoa {\n';
+      methodBlock += '\t\t\t\texport module koa {\n';
       methodBlock += '\t\t\t\t\texport interface Request extends Koa.Request {\n';
-      methodBlock += '\t\t\t\t\t\tquery: query\n';
-      methodBlock += '\t\t\t\t\t\tbody: body\n';
+      methodBlock += '\t\t\t\t\t\tquery: req.query\n';
+      methodBlock += '\t\t\t\t\t\tbody: req.body\n';
       methodBlock += '\t\t\t\t\t}\n';
       methodBlock += '\t\t\t\t\texport interface Response extends Koa.Response {\n';
-      methodBlock += '\t\t\t\t\t\theaders: ResponseHeaders\n';
+      methodBlock += '\t\t\t\t\t\theaders: res.headers\n';
+      methodBlock += '\t\t\t\t\t\tbody: res.body\n';
+      methodBlock += '\t\t\t\t\t\tset: res.headerSetter\n';
       methodBlock += '\t\t\t\t\t}\n';
       methodBlock += '\t\t\t\t\texport interface Context extends Koa.Context {\n';
-      methodBlock += '\t\t\t\t\t\tquery: query\n';
-      methodBlock += '\t\t\t\t\t\tbody: body\n';
+      methodBlock += '\t\t\t\t\t\tquery: req.query\n';
+      methodBlock += '\t\t\t\t\t\tbody: res.body\n';
+      methodBlock += '\t\t\t\t\t\tset: res.headerSetter\n';
       methodBlock += '\t\t\t\t\t\trequest: Request\n';
-      methodBlock += '\t\t\t\t\t\tresponse:Response\n';
+      methodBlock += '\t\t\t\t\t\tresponse: Response\n';
       methodBlock += '\t\t\t\t\t}\n';
       methodBlock += '\t\t\t\t}\n';
       methodBlock += '\t\t\t\t\texport interface Middleware {\n';
-      methodBlock += '\t\t\t\t\t\t(ctx: IKoa.Context, next?: () => any): Promise<Response> | Response | void;\n'
+      methodBlock += '\t\t\t\t\t\t(ctx: koa.Context, next?: () => any): void;\n'
       methodBlock += '\t\t\t\t}\n';
       methodBlock += "\t\t\t}\n"
       return methodBlock;

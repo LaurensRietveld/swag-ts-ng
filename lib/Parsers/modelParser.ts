@@ -28,7 +28,7 @@ class modelParser {
                 var property: IPropertyDefinition = {
                     name: p,
                     dataType: typeParser.parse(options, propertiesObject[p], options.modelModuleName, "I"),
-                    required: (required && required.indexOf(p) >= 0) || propertiesObject[p].required
+                    required: (required && required.indexOf(p) >= 0) || propertiesObject[p].required || propertiesObject[p].default //set as required in ts when we've got default vals
                 };
 
                 propArray.push(property);

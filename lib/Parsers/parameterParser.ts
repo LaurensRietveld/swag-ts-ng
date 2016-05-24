@@ -1,8 +1,10 @@
 ﻿import typeParser = require("./typeParser");
+﻿import modelParser = require("./modelParser");
 
 class parameterParser {
     static parse(options: ISwaggerOptions, property:any, modelPrefix: string): IParamDefinition {
         var dataType = typeParser.parse(options, property, options.modelModuleName, modelPrefix);
+
 
         var paramType: ParamType;
         switch (property.in) {
@@ -38,13 +40,16 @@ class parameterParser {
             required: property.required || !!(property.default),//set as required in ts when we've got default vals
             items: property.items,
             dataType: dataType,
-            text: paramDef
+            text: paramDef,
         };
 
         if (property.description && property.description.length > 0) {
             result.description = property.description;
         }
-
+        if (property.schema) {
+          // console.log(modelParser.parse(options, {schema:property.schema},options.modelModuleName))
+          result.models = modelParser.parse(options, {[property.in]:property.schema},options.modelModuleName)
+        }
         return result;
     }
 }

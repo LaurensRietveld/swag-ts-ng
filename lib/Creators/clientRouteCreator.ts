@@ -40,16 +40,40 @@ class clientRouteCreator {
       //go through all request parameters
       _.forEach([ParamType.Query, ParamType.Header, ParamType.Path, ParamType.FormData, ParamType.Body], function(paramType) {
         var paramName = clientRouteCreator.getParamTypeAsString(paramType);
-        var paramTypeBlock = '\t\t\t\t\texport interface ' + paramName + ' {';
-        if (groupedParams[paramType]) {
-          paramTypeBlock += '\n';
-          groupedParams[paramType].forEach(function(param) {
+        var modelReferences = <IParamDefinition[]>_.filter(groupedParams[paramType], 'models')
 
-            paramTypeBlock += "\t\t\t\t\t\t" + param.name + (param.required? '':'?') + ": " + param.dataType + ";\n";
-          })
+        var paramTypeBlock = '\t\t\t\t\texport interface ' + paramName + ' ';
+        if (modelReferences.length) {
+          //we are referencing a model, probably a schema defined for a post query or something. Don't do this the regular way for params,
+          //but refer to the schema by extending it in typescript
+          var extendsClasses = _.flatten(modelReferences.map(function(paramDef) {
+            if (paramDef.models) {
+              return _.flatten(paramDef.models.map(function(model) {
+                if (model.extends) return model.extends.map(function(extendsClass){return model.moduleName + '.I' + extendsClass})
+              }))
+            }
+          }));
+
+          // console.log(model)
+
+          paramTypeBlock += 'extends ' + extendsClasses.join(', ') + ' {'
+          // console.log(interfaceCreator.create(model, options.modelModuleName))
+        } else {
+          paramTypeBlock += '{';
+          if (groupedParams[paramType]) {
+            paramTypeBlock += '\n';
+            groupedParams[paramType].forEach(function(param) {
+
+              paramTypeBlock += "\t\t\t\t\t\t" + param.name + (param.required? '':'?') + ": " + param.dataType + ";\n";
+            })
+          }
         }
         paramTypeBlock += '\t\t\t\t\t}\n';
         methodBlock += paramTypeBlock;
+        // if (groupedParams[paramType].models) {
+        //
+        // }
+
       })
       methodBlock += '\t\t\t\t}\n'
 

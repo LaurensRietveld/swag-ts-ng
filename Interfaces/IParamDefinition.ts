@@ -8,4 +8,5 @@ interface IParamDefinition {
     text: string;
     items: any;
     description?: string;
+    models?: IModelDefinition[]
 }

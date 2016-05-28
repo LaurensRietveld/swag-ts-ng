@@ -17,7 +17,7 @@ class clientRouteCreator {
         case ParamType.Header:
             return 'header';
         case ParamType.Path:
-            return 'path';
+            return 'params';
         case ParamType.FormData:
             return 'formData';
         case ParamType.Body:
@@ -108,6 +108,7 @@ class clientRouteCreator {
       methodBlock += '\t\t\t\t\texport interface Request extends Koa.Request {\n';
       methodBlock += '\t\t\t\t\t\tquery: req.query\n';
       methodBlock += '\t\t\t\t\t\tbody: req.body\n';
+      methodBlock += '\t\t\t\t\t\tparams: req.params\n';
       methodBlock += '\t\t\t\t\t}\n';
       methodBlock += '\t\t\t\t\texport interface Response extends Koa.Response {\n';
       methodBlock += '\t\t\t\t\t\theaders: res.headers\n';
@@ -116,6 +117,7 @@ class clientRouteCreator {
       methodBlock += '\t\t\t\t\t}\n';
       methodBlock += '\t\t\t\t\texport interface Context extends Koa.Context {\n';
       methodBlock += '\t\t\t\t\t\tquery: req.query\n';
+      methodBlock += '\t\t\t\t\t\tparams: req.params\n';
       methodBlock += '\t\t\t\t\t\tbody: res.body\n';
       methodBlock += '\t\t\t\t\t\tset: res.headerSetter\n';
       methodBlock += '\t\t\t\t\t\trequest: Request\n';
